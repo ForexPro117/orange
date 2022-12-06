@@ -2,7 +2,8 @@ package com.example.user;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,11 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository;
 
-	public User saveUser(User user) {
+	public User saveUser(User user) throws NoSuchAlgorithmException {
+		if(userRepository.existsByEmail(user.getEmail()))
+			throw new RuntimeException("User with this email exist");
+		
+		user.setHash(getHash(user.getPassword()));
 		return userRepository.save(user);
 	}
 
@@ -31,12 +36,30 @@ public class UserService {
 	}
 
 	public User login(String email, String password) throws NoSuchAlgorithmException {
-		byte[] salt = new byte[] {1,2,3};
+		var hash = getHash(password);
+		return userRepository.findByEmailAndHash(email, hash).orElseThrow(() -> new RuntimeException("User not found"));
+	}
+
+	private byte[] getHash(String text) throws NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("SHA-512");
-//		md.update(salt);
-		var hash = md.digest(password.getBytes());
-		System.err.println("->> "+hash);
-		return userRepository.findByEmailAndHash(email, hash.toString()).orElseThrow(() -> new RuntimeException("User not found"));
+		md.update("shadin".getBytes());
+		return md.digest(text.getBytes());
+	}
+
+	public Object saveUserTest() throws NoSuchAlgorithmException {
+		var user = new User();
+		user.setFirstName("Shadin");
+		user.setPassword("123");
+		user.setLastName("Shadinovka");
+		user.setMiddleName("Shadinovich");
+		user.setSex("male");
+		user.setPhone("88005553535");
+		user.setEmail("shadin@good.boy");
+		user.setRole("God");
+		user.setDateOfbirth(new Timestamp(new Date().getTime()));
+		user.setDatedOfEmployment(new Timestamp(new Date().getTime()));
+		user.setHash(getHash(user.getPassword()));
+		return userRepository.save(user);
 	}
 
 }

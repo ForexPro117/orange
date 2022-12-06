@@ -6,11 +6,14 @@ import java.util.UUID;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 
 @Entity
@@ -20,7 +23,11 @@ public class User {
 	@Id
 	@GeneratedValue
 	private	UUID uuid;
-	private String hash;
+	@JsonIgnore
+	private byte[] hash;
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	@Transient
+	private String password;
 	private String firstName;
 	private String lastName;
 	private String middleName;
@@ -94,12 +101,19 @@ public class User {
 	public void setRole(String role) {
 		this.role = role;
 	}
-	public String getHash() {
+	public byte[] getHash() {
 		return hash;
 	}
-	public void setHash(String hash) {
+	public void setHash(byte[] hash) {
 		this.hash = hash;
 	}
+	public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	
 	
 
 	
